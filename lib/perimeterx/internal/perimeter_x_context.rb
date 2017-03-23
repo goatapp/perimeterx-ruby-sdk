@@ -27,7 +27,6 @@ class PerimeterXContext
       end #end case
     end#end empty cookies
 
-    @context[:start_time] = DateTime.now.strftime('%Q')
     req.headers.each do |k,v|
       if(k.start_with? "HTTP_")
         header = k.to_s.gsub("HTTP_","")
