@@ -22,7 +22,7 @@ Table of Contents
 <a name="installation"></a> Installation
 ----------------------------------------
 Install it through command line ```gem install perimeter_x --pre```
-Or add it in Gemfile ```gem 'perimeter_x', '~> 1.0.3.pre.alpha'```
+Or add it in Gemfile ```gem 'perimeter_x', '~> 1.0.4.pre.alpha'```
 
 
 <a name=basic-usage></a> Basic Usage Example
