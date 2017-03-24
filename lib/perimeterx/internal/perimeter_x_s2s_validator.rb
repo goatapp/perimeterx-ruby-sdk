@@ -18,7 +18,6 @@ class PerimeterxS2SValidator < PerimeterxRiskClient
       'request' => {
         'ip'      => @px_ctx.context[:ip],
         'headers' => format_headers(),
-        'uri'     => @px_ctx.context[:uri],
         'url'     => @px_ctx.context[:full_url]
       },
       'additional' => {

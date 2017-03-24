@@ -15,9 +15,9 @@ class PerimeterXContext
     cookies = req.cookies
     if (!cookies.empty?)
       # Prepare hashed cookies
-      cookies.each do |k,v|
+      cookies.each do |k, v|
         case k
-          when"_px3"
+          when "_px3"
             @context[:px_cookies] = v
           when "_px"
             @context[:px_cookies] = v
@@ -25,20 +25,19 @@ class PerimeterXContext
             @context[:px_captcha] = v
         end
       end #end case
-    end#end empty cookies
+    end #end empty cookies
 
-    req.headers.each do |k,v|
-      if(k.start_with? "HTTP_")
-        header = k.to_s.gsub("HTTP_","")
-        header = header.gsub("_","-").downcase
+    req.headers.each do |k, v|
+      if (k.start_with? "HTTP_")
+        header = k.to_s.gsub("HTTP_", "")
+        header = header.gsub("_", "-").downcase
         @context[:headers][header.to_sym] = v
       end
-    end#end headers foreach
+    end #end headers foreach
 
     @context[:hostname]= req.headers['HTTP_HOST']
     @context[:user_agent] = req.headers['HTTP_USER_AGENT'] ? req.headers['HTTP_USER_AGENT'] : ''
-    @context[:uri] = px_config[:custom_uri] ? px_config[:custom_uri]  : req.headers['REQUEST_URI']
-    @context[:full_url] = self_url(req)
+    @context[:full_url] = req.original_url
     @context[:score] = 0
 
     if px_config.key?('custom_user_ip')
@@ -51,23 +50,13 @@ class PerimeterXContext
     end
 
     if req.headers['SERVER_PROTOCOL']
-        httpVer = req.headers['SERVER_PROTOCOL'].split("/")
-        if httpVer.size > 0
-            @context[:http_version] = httpVer[1];
-        end
+      httpVer = req.headers['SERVER_PROTOCOL'].split("/")
+      if httpVer.size > 0
+        @context[:http_version] = httpVer[1];
+      end
     end
     @context[:http_method] = req.headers['REQUEST_METHOD'];
 
   end #end init
-
-  def self_url(req)
-    s = req.headers.key?('HTTPS') && req.headers['HTTPS'] == "on" ? "s" : "" #check if HTTPS or HTTP
-    l = req.headers['SERVER_PROTOCOL'].downcase #get protocol and downcase it
-    protocol = "#{l[0,l.index('/')]}#{s}#{l[(l.index('/') ),l.size]}" #concat http{s}:/x.y
-    port = (req.headers["SERVER_PORT"] != "80") ? ":#{req.headers["SERVER_PORT"]}" : ""
-    return "#{l}://#{req.headers['HTTP_HOST']}#{@uri}" #concant str
-  end
-
-  private :self_url
 
 end #end class
