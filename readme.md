@@ -43,14 +43,21 @@ class HomeController < ApplicationController
   initialize()
     configuration = {
       "app_id" => <APP_ID>
-      "auth_token" => <AUTH_TOKEN>
+      "auth_token" => <AUTH_TOKEN>,
+      "custom_verification_handler" => -> (px_ctx) {
+       if px_ctx[:score] >= 60
+         return false
+       end
+       return true
+  }
     }
     @px = PxModule.instance(params)
   end
   ...
   ...
   def px_middleware
-    px.px_verify(request.env)
+    if (!px.px_verify(request.env))
+      render status: 403
   end
 ```
 
@@ -67,7 +74,7 @@ When implemented, this method receives  a hash variable as input which represent
 
 To replace the default verification behavior, add the configuration a lambda member as shown in the example below.
 
-The method must return boolen value.
+The method returns a boolen value.
 
 
 
@@ -77,7 +84,7 @@ configuration = {
   "auth_token" => <AUTH_TOKEN>,
   "custom_verification_handler" => -> (px_ctx) {
     if px_ctx[:score] >= 60
-        # take your action and retun a message or JSON with a status code of 403 and option UUID of the request. Can return false and include action in the px_middleware method.  
+        return false
     end
     return true
   }
