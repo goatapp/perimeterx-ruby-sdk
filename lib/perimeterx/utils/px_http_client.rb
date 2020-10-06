@@ -1,6 +1,7 @@
 require 'perimeterx/utils/px_logger'
 require 'typhoeus'
 require 'concurrent'
+require 'net/http'
 
 module PxModule
   class PxHttpClient
@@ -12,7 +13,7 @@ module PxModule
     def initialize(px_config)
       @px_config = px_config
       @logger = px_config[:logger]
-      @logger.debug("PxHttpClient[initialize]: HTTP client is being initilized with base_uri: #{px_config[:perimeterx_server_host]}")
+      @logger.debug("PxHttpClient[initialize]: HTTP client is being initilized with base_uri: #{px_config[:backend_url]}")
     end
 
     # Runs a POST command to Perimeter X servers
@@ -28,7 +29,7 @@ module PxModule
       begin
         @logger.debug("PxHttpClient[post]: posting to #{path} headers {#{headers.to_json()}} body: {#{body.to_json()}} ")
         response = Typhoeus.post(
-            "#{px_config[:perimeterx_server_host]}#{path}",
+            "#{px_config[:backend_url]}#{path}",
             headers: headers,
             body: body.to_json,
             timeout: api_timeout,
@@ -45,5 +46,61 @@ module PxModule
       return response
     end
 
+
+    def post_xhr(url, body, headers)
+      s = Time.now
+      begin
+        @logger.debug("PxHttpClient[post]: sending xhr post request to #{url} with headers {#{headers.to_json()}}")
+        
+        #set url
+        uri = URI(url)
+        req = Net::HTTP::Post.new(uri)
+        
+        # set body
+        req.body=body
+        
+        # set headers
+        headers.each do |key, value|
+          req[key] = value
+        end
+        
+        # send request   
+        response = Net::HTTP.start(uri.hostname, uri.port) {|http|
+          http.request(req)
+        }
+
+      ensure
+        e = Time.now
+        @logger.debug("PxHttpClient[get]: runtime: #{(e-s) * 1000.0}")
+      end
+      return response
+    end
+
+
+    def get(url, headers)
+      s = Time.now
+      begin
+        @logger.debug("PxHttpClient[get]: sending get request to #{url} with headers {#{headers.to_json()}}")
+        
+        #set url
+        uri = URI(url)
+        req = Net::HTTP::Get.new(uri)
+        
+        # set headers
+        headers.each do |key, value|
+          req[key] = value
+        end
+        
+        # send request   
+        response = Net::HTTP.start(uri.hostname, uri.port) {|http|
+          http.request(req)
+        }
+        
+      ensure
+        e = Time.now
+        @logger.debug("PxHttpClient[get]: runtime: #{(e-s) * 1000.0}")
+      end
+      return response
+    end
   end
 end

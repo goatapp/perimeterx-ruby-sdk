@@ -1,11 +1,11 @@
 [![Build Status](https://travis-ci.org/PerimeterX/perimeterx-ruby-sdk.svg?branch=master)](https://travis-ci.org/PerimeterX/perimeterx-ruby-sdk)
 
-![image](http://media.marketwire.com/attachments/201604/34215_PerimeterX_logo.jpg)
+![image](https://storage.googleapis.com/perimeterx-logos/primary_logo_red_cropped.png)
 #
 [PerimeterX](http://www.perimeterx.com) Ruby SDK
 =============================================================
 
-> Latest stable version: [v1.3.0](https://rubygems.org/gems/perimeter_x/versions/1.3.0)
+> Latest stable version: [v2.2.1](https://rubygems.org/gems/perimeter_x)
 
 Table of Contents
 -----------------
@@ -19,8 +19,6 @@ Table of Contents
   *   [Blocking Score](#blocking-score)
   *   [Custom Verification Action](#custom-verification-action)
   *   [Custom Block Page](#custom-block-page)
-  *   [Enable/Disable Captcha](#captcha-support)
-  *   [Select Captcha Provider](#captcha-provider)
   *   [Extracting Real IP Address](#real-ip)
   *   [Custom URI](#custom-uri)
   *   [Filter Sensitive Headers](#sensitive-headers)
@@ -29,6 +27,9 @@ Table of Contents
   *   [Additional Page Activity Handler](#additional-page-activity-handler)
   *   [Monitor Only](#logging)
   *   [Debug Mode](#debug-mode)
+  *   [Whitelist Routes](#whitelist-routes)
+  *   [Update Configuration on Runtime](#update-config)
+  *   [First Party](#first-party)
   
   **[Contributing](#contributing)**
 
@@ -138,13 +139,13 @@ params = {
   ...
   :custom_verification_handler => -> (px_ctx) {
     block_score = px_ctx.context[:score];
-    block_uuid = px_ctx.context[:uuid];
+    client_uuid = px_ctx.context[:uuid];
     full_url = px_ctx.context[:full_url];
 
     html = "<html>
             <body>
             <div>Access to #{full_url} has been blocked.</div>    
-            <div>Block reference - #{block_uuid} </div>
+            <div>Block reference - #{client_uuid} </div>
             <div>Block score - #{block_score} </div>
             </body>
             </html>".html_safe
@@ -222,26 +223,6 @@ Default mode: PxModule::ACTIVE_MODE
 params[:module_mode] = PxModule::MONITOR_MODE
 ```
 
-<a name="captcha-support"></a>**Enable/Disable CAPTCHA on the block page**
-Default mode: enabled
-
-By enabling CAPTCHA support, a CAPTCHA will be served as part of the block page, giving real users the ability to identify as a human. By solving the CAPTCHA, the user's score is then cleaned up and the user is allowed to continue normal use.
-
-```ruby
-params[:captcha_enabled] = false
-```
-
-<a name="captcha-provider"></a>**Select CAPTCHA Provider**
-
-The CAPTCHA part of the block page can use one of the following:
-* [reCAPTCHA](https://www.google.com/recaptcha)
-
-Default: 'reCaptcha'
-
-```ruby
-captchaProvider = "reCaptcha"
-```
-
 <a name="custom-uri"></a>**Custom URI**
 
 Default: 'REQUEST_URI'
@@ -304,6 +285,71 @@ Enables debug logging mode to STDOUT
 ```ruby
   params[:debug] = true
 ```
+
+<a name="whitelist-routes"></a>**Whitelist Routes**
+Default: []
+
+An array of route prefixes and/or regular expressions that are always whitelisted and not validated by PerimeterX.
+A string value of a path will be treated as a prefix.
+A regexp value of a path will be treated as is.
+
+```ruby
+  params[:whitelist_routes] = ["/example", /\A\/example\z/]
+```
+
+<a name="update-config"></a>**Update Configuration on Runtime**
+
+As mentioned before, PerimeterX Module should be configured in `<rails_app>/config/initializers/perimeterx.rb`.
+However, it is possible to override configuration options on each request.
+To do so, send the configuration options as an argument when calling to `px_verify_request` as described in the following example.
+Notice that in case of an invalid argument, the module will raise an error. Therefore, when using this feature, make sure to wrap the call to `px_verify_request` with begin and rescue. It is highly recommended to log the error message to follow such errors.
+
+Usage example:
+
+```ruby
+class HomeController < ApplicationController
+  include PxModule
+
+  before_action do call_perimeterx_verify_request end
+
+  def call_perimeterx_verify_request
+    params = {
+    :blocking_score => 70,
+    :module_mode => 2
+    }
+    begin
+      px_verify_request(params) 
+    rescue StandardError => e
+      # $stdout.write(e.message)
+    end
+  end
+
+end
+```
+
+<a name="first-party"></a>**First Party**
+
+To enable first party on your enforcer, add the following routes to your `config/routes.rb` file:
+
+```ruby
+  get '/:appid_postfix/init.js', to: 'home#index', constraints: { appid_postfix: /XXXXXXXX/ }
+  get '/:appid_postfix/captcha/:all', to: 'home#index', constraints: { appid_postfix: /XXXXXXXX/, all:/.*/ }
+  post '/:appid_postfix/xhr/:all', to: 'home#index', constraints: { appid_postfix: /XXXXXXXX/, all:/.*/  }  
+```
+
+Notice that all occurences of `XXXXXXXX` should be replaced with your px_app_id without the "PX" prefix. For example, if your px_app_id is `PX2H4seK9L`, replace `XXXXXXXX` with `2H4seK9L`.
+
+In case you are using more than one px_app_id, provide all of them with a `|` sign between them. For example:  2H4seK9L|9bMs6K94|Lc5kPMNx
+
+
+First Party configuration:
+
+Default: true
+
+```ruby
+  params[:first_party_enabled] = false
+```
+
 
 <a name="contributing"></a># Contributing #
 ------------------------------

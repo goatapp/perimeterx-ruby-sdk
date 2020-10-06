@@ -5,6 +5,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.1] - 2020-09-27
+### Fixed
+ - bypass_monitor_header type validation
+
+## [2.2.0] - 2020-09-15
+### Added
+ - First Party
+
+## [2.1.0] - 2020-09-01
+### Added
+ - Added option to set a different px configuration on each request
+ - Added types validation on configuration fields
+
+### Fixed
+ - New cookie logic for mobile requests
+ - Renamed api_connect_timeout to api_timeout_conncection on default configuration
+ - Removed unsapported configuration fields: max_buffer_len and local_proxy
+ - Send cookie_origin only if there is a cookie
+
+## [2.0.0] - 2020-07-24
+### Added
+ - Added fields to Block Activity: simulated_block, http_version, http_method, risk_rtt, px_orig_cookie
+ - Added fields to page_requested activity: pass_reason, risk_rtt, px_orig_cookie
+ - Added px_orig_cookie field to risk_api in case of cookie_decryption_failed
+ - Added support for captcha v2
+ - Added support for Advanced Blocking Response
+ - Added support for whitelise routes
+ - Added support for bypass monitor header
+ - Added support for extracting vid from _pxvid cookie
+ - Added support for rate limit
+ - Added risk_cookie_max_iterations configuration
+
+### Fixed
+ - Updated dependencies
+ - Updated sample site dockerfile
+ - Fixed monitor mode
+ - Fixed send_page_activities and send_block_activities configurations
+ - Updated risk to v3
+ - Refactored ip header extraction
+ - Renamed block_uuid field to client_uuid
+ - Renamed perimeterx_server_host configuration to backend_url
+ - Updated risk_response handling: pass the request if risk_response.status is -1
+ - Forcing http header values to be utf8
+
 ## [1.4.0] - 2018-03-18
 ### Fixed
  - Incorrect assigment for s2s_call_reason
